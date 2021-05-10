@@ -1,8 +1,10 @@
 {
   "name": "@thetc/unavail",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Calculate unavailability based on intervals and identifiers.",
+  "index": "dist/index.js",
   "scripts": {
+    "preinstall": "npm run build",
     "build": "tsc --project .",
     "test": "jest"
   },
