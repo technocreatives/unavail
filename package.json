@@ -1,6 +1,6 @@
 {
   "name": "@thetc/unavail",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Calculate unavailability based on intervals and identifiers.",
   "scripts": {
     "build": "tsc --project .",
@@ -25,6 +25,5 @@
   },
   "dependencies": {
     "luxon": "^1.26.0"
-  },
-  "private": true
+  }
 }
