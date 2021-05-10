@@ -1,5 +1,5 @@
 {
-  "name": "unavail",
+  "name": "@thetc/unavail",
   "version": "1.0.0",
   "description": "Calculate unavailability based on intervals and identifiers.",
   "scripts": {
@@ -7,7 +7,7 @@
     "test": "jest"
   },
   "author": "Brendan Molloy <brendan@technocreatives.com>",
-  "license": "",
+  "license": "MIT OR Apache-2.0",
   "devDependencies": {
     "@types/jest": "^26.0.23",
     "@types/luxon": "^1.26.5",
