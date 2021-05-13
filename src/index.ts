@@ -51,14 +51,18 @@ export class UnavailabilityCalculator {
     this.timeZone = timeZone
   }
 
+  private bufferedInterval(interval: Interval): Interval {
+    return Interval.fromDateTimes(
+      interval.start.minus(this.buffer),
+      interval.end.plus(this.buffer)
+    )
+  }
+
   private unavailabilityForInterval(
     inputInterval: Interval,
     input: UnavailabilityInput
   ): Identifier[] {
-    const bufferedInterval = Interval.fromDateTimes(
-      inputInterval.start.minus(this.buffer),
-      inputInterval.end.plus(this.buffer)
-    )
+    const bufferedInterval = this.bufferedInterval(inputInterval)
     const overlaps = input.intervals
       .filter(({ interval }) => interval.overlaps(bufferedInterval))
       .reduce((acc: Identifier[], cur) => {
@@ -70,6 +74,49 @@ export class UnavailabilityCalculator {
     list.sort()
 
     return list
+  }
+
+  private firstUnavailableDays(
+    start: DateTime,
+    input: UnavailabilityInput
+  ): Record<string, Interval> {
+    let total = 0
+    const out: Record<string, Interval> = {}
+
+    for (const range of input.intervals) {
+      if (range.interval.isBefore(start)) {
+        continue
+      }
+
+      for (const id of range.identifiers) {
+        if (out[id] == null) {
+          total += 1
+          out[id] = this.bufferedInterval(range.interval)
+        }
+      }
+      if (total >= input.totalUniqueIdentifiers) {
+        break
+      }
+    }
+    return out
+  }
+
+  private lastAvailableSlot(
+    start: DateTime,
+    input: UnavailabilityInput
+  ): DateTime | null {
+    const values = Object.values(this.firstUnavailableDays(start, input)).map(
+      (x) => x.start
+    )
+    if (values.length === 0 || values.length < input.totalUniqueIdentifiers) {
+      return null
+    }
+
+    values.sort((a: DateTime, b: DateTime) =>
+      a.toMillis() < b.toMillis() ? 1 : -1
+    )
+
+    return values.filter((x) => x.toMillis() > start.toMillis())[0]
   }
 
   private getPercentUnavailable(input: UnavailabilityInput, count: number) {
@@ -114,5 +161,22 @@ export class UnavailabilityCalculator {
       )
       return { day, hourly, percentUnavailable }
     })
+  }
+
+  availabilityIntervalForStartDateTime(
+    startDateTime: DateTime,
+    input: UnavailabilityInput
+  ): Interval | null {
+    const endDateTime = this.lastAvailableSlot(
+      startDateTime.setZone(this.timeZone),
+      input
+    )
+    if (endDateTime == null) {
+      return null
+    }
+    return Interval.fromDateTimes(
+      startDateTime.setZone(this.timeZone),
+      endDateTime.minus(this.buffer).setZone(this.timeZone)
+    )
   }
 }

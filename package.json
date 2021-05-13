@@ -1,6 +1,6 @@
 {
   "name": "@thetc/unavail",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Calculate unavailability based on intervals and identifiers.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

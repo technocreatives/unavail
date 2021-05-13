@@ -410,3 +410,152 @@ test("buffers are handled with interesting patterns", () => {
   const result = { ...data.map((x) => x.identifiers) }
   expect(result).toEqual(expectations)
 })
+
+test("can find first available time period for given start date", () => {
+  const a = UnavailabilityCalculator.create(
+    Duration.fromObject({ minutes: 30 }),
+    "Europe/Stockholm"
+  )
+
+  const testIntervalA = Interval.fromDateTimes(
+    DateTime.fromISO("2020-01-01T00:00:00Z").toUTC(),
+    DateTime.fromISO("2020-01-01T04:00:00Z").toUTC()
+  )
+  const testIntervalB = Interval.fromDateTimes(
+    DateTime.fromISO("2020-01-01T02:00:00Z").toUTC(),
+    DateTime.fromISO("2020-01-01T06:00:00Z").toUTC()
+  )
+  const testIntervalC = Interval.fromDateTimes(
+    DateTime.fromISO("2020-01-01T04:00:00Z").toUTC(),
+    DateTime.fromISO("2020-01-01T08:00:00Z").toUTC()
+  )
+
+  const unavailData: UnavailabilityInput = {
+    intervals: [
+      {
+        interval: testIntervalA,
+        identifiers: ["test-a"],
+      },
+      {
+        interval: testIntervalB,
+        identifiers: ["test-b"],
+      },
+      {
+        interval: testIntervalC,
+        identifiers: ["test-c"],
+      },
+    ],
+    totalUniqueIdentifiers: 3,
+  }
+
+  const interval = a.availabilityIntervalForStartDateTime(
+    DateTime.fromISO("2020-01-01T00:00:00Z").toUTC(),
+    unavailData
+  )
+
+  expect(interval).not.toBeNull()
+
+  expect(interval!.start.toUTC().toISO()).toBe(
+    DateTime.fromISO("2020-01-01T00:00:00Z").toUTC().toISO()
+  )
+  expect(interval!.end.toUTC().toISO()).toBe(
+    DateTime.fromISO("2020-01-01T03:00:00Z").toUTC().toISO()
+  )
+})
+
+test("can find first available time period for given start date 2", () => {
+  const a = UnavailabilityCalculator.create(
+    Duration.fromObject({ minutes: 30 }),
+    "Europe/Stockholm"
+  )
+
+  const testIntervalA = Interval.fromDateTimes(
+    DateTime.fromISO("2020-01-01T00:00:00Z").toUTC(),
+    DateTime.fromISO("2020-01-01T04:00:00Z").toUTC()
+  )
+  const testIntervalB = Interval.fromDateTimes(
+    DateTime.fromISO("2020-01-01T12:00:00Z").toUTC(),
+    DateTime.fromISO("2020-01-01T23:00:00Z").toUTC()
+  )
+  const testIntervalC = Interval.fromDateTimes(
+    DateTime.fromISO("2020-01-01T11:00:00Z").toUTC(),
+    DateTime.fromISO("2020-01-01T19:00:00Z").toUTC()
+  )
+
+  const unavailData: UnavailabilityInput = {
+    intervals: [
+      {
+        interval: testIntervalA,
+        identifiers: ["test-a"],
+      },
+      {
+        interval: testIntervalB,
+        identifiers: ["test-b"],
+      },
+      {
+        interval: testIntervalC,
+        identifiers: ["test-c"],
+      },
+    ],
+    totalUniqueIdentifiers: 3,
+  }
+
+  const interval = a.availabilityIntervalForStartDateTime(
+    DateTime.fromISO("2020-01-01T00:00:00Z").toUTC(),
+    unavailData
+  )
+
+  expect(interval).not.toBeNull()
+
+  expect(interval!.start.toUTC().toISO()).toBe(
+    DateTime.fromISO("2020-01-01T00:00:00Z").toUTC().toISO()
+  )
+  expect(interval!.end.toUTC().toISO()).toBe(
+    DateTime.fromISO("2020-01-01T11:00:00Z").toUTC().toISO()
+  )
+})
+
+test("that if there's not 100% coverage for identifiers, that the interval is null", () => {
+  const a = UnavailabilityCalculator.create(
+    Duration.fromObject({ minutes: 30 }),
+    "Europe/Stockholm"
+  )
+
+  const testIntervalA = Interval.fromDateTimes(
+    DateTime.fromISO("2020-01-01T00:00:00Z").toUTC(),
+    DateTime.fromISO("2020-01-01T04:00:00Z").toUTC()
+  )
+  const testIntervalB = Interval.fromDateTimes(
+    DateTime.fromISO("2020-01-01T12:00:00Z").toUTC(),
+    DateTime.fromISO("2020-01-01T23:00:00Z").toUTC()
+  )
+  const testIntervalC = Interval.fromDateTimes(
+    DateTime.fromISO("2020-01-01T11:00:00Z").toUTC(),
+    DateTime.fromISO("2020-01-01T19:00:00Z").toUTC()
+  )
+
+  const unavailData: UnavailabilityInput = {
+    intervals: [
+      {
+        interval: testIntervalA,
+        identifiers: ["test-a"],
+      },
+      {
+        interval: testIntervalB,
+        identifiers: ["test-b"],
+      },
+      {
+        interval: testIntervalC,
+        identifiers: ["test-c"],
+      },
+    ],
+    totalUniqueIdentifiers: 100,
+  }
+
+  const interval = a.availabilityIntervalForStartDateTime(
+    DateTime.fromISO("2020-01-01T00:00:00Z").toUTC(),
+    unavailData
+  )
+
+  expect(interval).toBeNull()
+})
